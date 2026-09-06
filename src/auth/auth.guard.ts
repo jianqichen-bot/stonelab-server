@@ -1,11 +1,17 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 import type { RequestUser } from './auth.types.js';
 import { TokenService } from './token.service.js';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private readonly tokens: TokenService) {}
+  constructor(@Inject(TokenService) private readonly tokens: TokenService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<FastifyRequest & { user?: RequestUser }>();

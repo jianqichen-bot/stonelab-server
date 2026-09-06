@@ -1,4 +1,5 @@
-import { plainToInstance } from 'class-transformer';
+import 'reflect-metadata';
+import { plainToInstance, Type } from 'class-transformer';
 import {
   IsIn,
   IsInt,
@@ -18,6 +19,7 @@ class EnvironmentVariables {
   @IsInt()
   @Min(1)
   @IsOptional()
+  @Type(() => Number)
   PORT = 3100;
 
   @IsString()

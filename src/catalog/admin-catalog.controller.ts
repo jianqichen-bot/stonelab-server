@@ -3,12 +3,14 @@ import {
   Controller,
   Delete,
   Get,
+  Inject,
   Param,
   ParseIntPipe,
   Patch,
   Post,
   Query,
   UseGuards,
+  VERSION_NEUTRAL,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/auth.guard.js';
@@ -28,9 +30,9 @@ import { ProductQueryDto } from './dto/query.dto.js';
 @ApiTags('admin-catalog')
 @ApiBearerAuth()
 @UseGuards(AuthGuard)
-@Controller({ path: 'admin/catalog', version: 'neutral' })
+@Controller({ path: 'admin/catalog', version: VERSION_NEUTRAL })
 export class AdminCatalogController {
-  constructor(private readonly catalog: CatalogService) {}
+  constructor(@Inject(CatalogService) private readonly catalog: CatalogService) {}
 
   @Get('categories') listCategories() {
     return this.catalog.listCategories();

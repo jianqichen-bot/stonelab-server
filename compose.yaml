@@ -6,7 +6,8 @@ services:
       POSTGRES_USER: stonelab
       POSTGRES_PASSWORD: stonelab
     ports:
-      - '5432:5432'
+      # 5432 常被本机已有 PostgreSQL 占用，开发容器默认映射到 5433。
+      - '${POSTGRES_PORT:-5433}:5432'
     volumes:
       - stonelab_postgres:/var/lib/postgresql/data
     healthcheck:

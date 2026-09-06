@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { jwtVerify, SignJWT } from 'jose';
 import { ConfigService } from '../config/config.service.js';
 import type { AccessTokenPayload, RefreshTokenPayload } from './auth.types.js';
@@ -7,7 +7,7 @@ const encoder = new TextEncoder();
 
 @Injectable()
 export class TokenService {
-  constructor(private readonly config: ConfigService) {}
+  constructor(@Inject(ConfigService) private readonly config: ConfigService) {}
 
   async issue(user: { id: string; username: string; roles: string[] }) {
     const now = Math.floor(Date.now() / 1000);

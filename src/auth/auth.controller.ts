@@ -1,4 +1,15 @@
-import { Body, Controller, Get, HttpCode, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Inject,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+  VERSION_NEUTRAL,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { ConfigService } from '../config/config.service.js';
@@ -10,11 +21,11 @@ import { LoginDto } from './dto/login.dto.js';
 import { RefreshTokenDto } from './dto/refresh-token.dto.js';
 
 @ApiTags('admin-auth')
-@Controller({ version: 'neutral' })
+@Controller({ version: VERSION_NEUTRAL })
 export class AuthController {
   constructor(
-    private readonly auth: AuthService,
-    private readonly config: ConfigService,
+    @Inject(AuthService) private readonly auth: AuthService,
+    @Inject(ConfigService) private readonly config: ConfigService,
   ) {}
 
   @Post('auth/login')

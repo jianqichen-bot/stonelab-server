@@ -7,6 +7,6 @@ import { TokenService } from './token.service.js';
 @Module({
   controllers: [AuthController],
   providers: [AuthService, AuthGuard, TokenService],
-  exports: [AuthGuard],
+  exports: [AuthGuard, TokenService],
 })
 export class AuthModule {}

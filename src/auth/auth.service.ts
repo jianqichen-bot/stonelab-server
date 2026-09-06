@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { RecordStatus } from '../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { LoginDto } from './dto/login.dto.js';
@@ -8,8 +8,8 @@ import { TokenService } from './token.service.js';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly tokens: TokenService,
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(TokenService) private readonly tokens: TokenService,
   ) {}
 
   async login(input: LoginDto) {

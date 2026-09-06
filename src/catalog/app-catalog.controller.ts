@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Inject, Param, ParseIntPipe, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CatalogService } from './catalog.service.js';
 import { ProductQueryDto } from './dto/query.dto.js';
@@ -6,7 +6,7 @@ import { ProductQueryDto } from './dto/query.dto.js';
 @ApiTags('app-catalog')
 @Controller({ path: 'app/catalog', version: '1' })
 export class AppCatalogController {
-  constructor(private readonly catalog: CatalogService) {}
+  constructor(@Inject(CatalogService) private readonly catalog: CatalogService) {}
 
   @Get('categories')
   listCategories() {
