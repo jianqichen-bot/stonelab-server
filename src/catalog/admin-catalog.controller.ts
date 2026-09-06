@@ -1,0 +1,94 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '../auth/auth.guard.js';
+import { CurrentUser } from '../auth/current-user.decorator.js';
+import type { RequestUser } from '../auth/auth.types.js';
+import { CatalogService } from './catalog.service.js';
+import { CreateCategoryDto, UpdateCategoryDto } from './dto/category.dto.js';
+import { AdjustInventoryDto } from './dto/inventory.dto.js';
+import {
+  CreateProductDto,
+  CreateVariantDto,
+  UpdateProductDto,
+  UpdateVariantDto,
+} from './dto/product.dto.js';
+import { ProductQueryDto } from './dto/query.dto.js';
+
+@ApiTags('admin-catalog')
+@ApiBearerAuth()
+@UseGuards(AuthGuard)
+@Controller({ path: 'admin/catalog', version: 'neutral' })
+export class AdminCatalogController {
+  constructor(private readonly catalog: CatalogService) {}
+
+  @Get('categories') listCategories() {
+    return this.catalog.listCategories();
+  }
+  @Post('categories') createCategory(@Body() input: CreateCategoryDto) {
+    return this.catalog.createCategory(input);
+  }
+  @Patch('categories/:id') updateCategory(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() input: UpdateCategoryDto,
+  ) {
+    return this.catalog.updateCategory(id, input);
+  }
+  @Delete('categories/:id') deleteCategory(@Param('id', ParseIntPipe) id: number) {
+    return this.catalog.deleteCategory(id);
+  }
+
+  @Get('products') listProducts(@Query() query: ProductQueryDto) {
+    return this.catalog.listProducts(query);
+  }
+  @Get('products/:id') getProduct(@Param('id', ParseIntPipe) id: number) {
+    return this.catalog.getProduct(id);
+  }
+  @Post('products') createProduct(@Body() input: CreateProductDto) {
+    return this.catalog.createProduct(input);
+  }
+  @Patch('products/:id') updateProduct(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() input: UpdateProductDto,
+  ) {
+    return this.catalog.updateProduct(id, input);
+  }
+  @Delete('products/:id') deleteProduct(@Param('id', ParseIntPipe) id: number) {
+    return this.catalog.deleteProduct(id);
+  }
+
+  @Post('products/:productId/variants') createVariant(
+    @Param('productId', ParseIntPipe) productId: number,
+    @Body() input: CreateVariantDto,
+  ) {
+    return this.catalog.createVariant(productId, input);
+  }
+  @Patch('variants/:id') updateVariant(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() input: UpdateVariantDto,
+  ) {
+    return this.catalog.updateVariant(id, input);
+  }
+  @Post('variants/:id/inventory') adjustInventory(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() input: AdjustInventoryDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.catalog.adjustInventory(id, input, user);
+  }
+  @Get('variants/:id/inventory-records') listInventoryRecords(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.catalog.listInventoryRecords(id);
+  }
+}
