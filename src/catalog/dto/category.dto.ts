@@ -1,14 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsEnum,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  Matches,
-  MaxLength,
-  Min,
-} from 'class-validator';
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 import { RecordStatus } from '../../generated/prisma/enums.js';
 
 export class CreateCategoryDto {
@@ -16,11 +7,6 @@ export class CreateCategoryDto {
   @IsNotEmpty()
   @MaxLength(100)
   name!: string;
-
-  @IsString()
-  @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
-  @MaxLength(100)
-  slug!: string;
 
   @ApiPropertyOptional({ nullable: true })
   @IsInt()
@@ -43,12 +29,6 @@ export class UpdateCategoryDto {
   @MaxLength(100)
   @IsOptional()
   name?: string;
-
-  @IsString()
-  @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
-  @MaxLength(100)
-  @IsOptional()
-  slug?: string;
 
   @IsInt()
   @Min(1)

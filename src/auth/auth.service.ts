@@ -80,6 +80,25 @@ export class AuthService {
           },
         ],
       },
+      {
+        path: '/catalog',
+        name: 'Catalog',
+        meta: { icon: 'lucide:gem', order: 10, title: '商品中心' },
+        children: [
+          {
+            path: 'categories',
+            name: 'CatalogCategories',
+            component: '/catalog/categories/index',
+            meta: { title: '分类管理' },
+          },
+          {
+            path: 'products',
+            name: 'CatalogProducts',
+            component: '/catalog/products/index',
+            meta: { title: '珠子商品' },
+          },
+        ],
+      },
     ];
   }
 

@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import cookie from '@fastify/cookie';
 import helmet from '@fastify/helmet';
+import multipart from '@fastify/multipart';
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -25,6 +26,9 @@ async function bootstrap() {
 
   await app.register(cookie);
   await app.register(helmet, { contentSecurityPolicy: false });
+  await app.register(multipart, {
+    limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+  });
   app.enableCors({
     credentials: true,
     origin: corsOrigins.length ? corsOrigins : true,

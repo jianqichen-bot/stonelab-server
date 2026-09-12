@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -9,13 +10,16 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import type { FastifyRequest } from 'fastify';
 import { AuthGuard } from '../auth/auth.guard.js';
 import { CurrentUser } from '../auth/current-user.decorator.js';
 import type { RequestUser } from '../auth/auth.types.js';
+import { OssAssetService } from '../storage/oss-asset.service.js';
 import { CatalogService } from './catalog.service.js';
 import { CreateCategoryDto, UpdateCategoryDto } from './dto/category.dto.js';
 import { AdjustInventoryDto } from './dto/inventory.dto.js';
@@ -32,7 +36,19 @@ import { ProductQueryDto } from './dto/query.dto.js';
 @UseGuards(AuthGuard)
 @Controller({ path: 'admin/catalog', version: VERSION_NEUTRAL })
 export class AdminCatalogController {
-  constructor(@Inject(CatalogService) private readonly catalog: CatalogService) {}
+  constructor(
+    @Inject(CatalogService) private readonly catalog: CatalogService,
+    @Inject(OssAssetService) private readonly assets: OssAssetService,
+  ) {}
+
+  @Get('assets') listAssets() {
+    return this.assets.listBeadImages();
+  }
+  @Post('assets') async uploadAsset(@Req() request: FastifyRequest) {
+    const file = await request.file();
+    if (!file) throw new BadRequestException('请选择图片文件');
+    return this.assets.uploadBeadImage(file.filename, file.mimetype, await file.toBuffer());
+  }
 
   @Get('categories') listCategories() {
     return this.catalog.listCategories();
@@ -80,6 +96,9 @@ export class AdminCatalogController {
     @Body() input: UpdateVariantDto,
   ) {
     return this.catalog.updateVariant(id, input);
+  }
+  @Delete('variants/:id') deleteVariant(@Param('id', ParseIntPipe) id: number) {
+    return this.catalog.deleteVariant(id);
   }
   @Post('variants/:id/inventory') adjustInventory(
     @Param('id', ParseIntPipe) id: number,

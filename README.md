@@ -45,7 +45,6 @@ npm run dev
 
 - `GET /api/v1/app/catalog/categories`
 - `GET /api/v1/app/catalog/products`
-- `GET /api/v1/app/catalog/products/:id`
 
 所有正常响应统一为：
 
@@ -59,3 +58,18 @@ npm run dev
 ```
 
 金额以人民币分存储；珠径使用 PostgreSQL Decimal；库存只能通过库存调整接口变更并记录流水。
+
+## 清理未使用的 OSS 图片
+
+脚本会比对数据库商品的 `imageKey` 与 OSS `beads/` 目录，仅将未被任何商品引用的图片列为候选。默认保护最近 24 小时上传的图片，避免误删尚未保存到商品的素材。
+
+```bash
+# 只检查，不删除
+npm run oss:cleanup
+
+# 删除检查出的未引用图片，并再次读取 OSS 验证结果
+npm run oss:cleanup -- --delete
+
+# 调整新图片保护时间，例如保护最近 48 小时
+npm run oss:cleanup -- --delete --min-age-hours=48
+```
