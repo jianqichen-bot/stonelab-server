@@ -18,6 +18,8 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import type { FastifyRequest } from 'fastify';
 import { AuthGuard } from '../auth/auth.guard.js';
 import { CurrentUser } from '../auth/current-user.decorator.js';
+import { PermissionGuard } from '../auth/permission.guard.js';
+import { RequirePermissions } from '../auth/permissions.decorator.js';
 import type { RequestUser } from '../auth/auth.types.js';
 import { OssAssetService } from '../storage/oss-asset.service.js';
 import { CatalogService } from './catalog.service.js';
@@ -33,7 +35,7 @@ import { ProductQueryDto } from './dto/query.dto.js';
 
 @ApiTags('admin-catalog')
 @ApiBearerAuth()
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, PermissionGuard)
 @Controller({ path: 'admin/catalog', version: VERSION_NEUTRAL })
 export class AdminCatalogController {
   constructor(
@@ -41,75 +43,96 @@ export class AdminCatalogController {
     @Inject(OssAssetService) private readonly assets: OssAssetService,
   ) {}
 
-  @Get('assets') listAssets() {
+  @Get('assets')
+  @RequirePermissions('catalog:product:list')
+  listAssets() {
     return this.assets.listBeadImages();
   }
-  @Post('assets') async uploadAsset(@Req() request: FastifyRequest) {
+  @Post('assets')
+  @RequirePermissions('catalog:product:list')
+  async uploadAsset(@Req() request: FastifyRequest) {
     const file = await request.file();
     if (!file) throw new BadRequestException('请选择图片文件');
     return this.assets.uploadBeadImage(file.filename, file.mimetype, await file.toBuffer());
   }
 
-  @Get('categories') listCategories() {
+  @Get('categories')
+  @RequirePermissions('catalog:category:list')
+  listCategories() {
     return this.catalog.listCategories();
   }
-  @Post('categories') createCategory(@Body() input: CreateCategoryDto) {
+  @Post('categories')
+  @RequirePermissions('catalog:category:list')
+  createCategory(@Body() input: CreateCategoryDto) {
     return this.catalog.createCategory(input);
   }
-  @Patch('categories/:id') updateCategory(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() input: UpdateCategoryDto,
-  ) {
+  @Patch('categories/:id')
+  @RequirePermissions('catalog:category:list')
+  updateCategory(@Param('id', ParseIntPipe) id: number, @Body() input: UpdateCategoryDto) {
     return this.catalog.updateCategory(id, input);
   }
-  @Delete('categories/:id') deleteCategory(@Param('id', ParseIntPipe) id: number) {
+  @Delete('categories/:id')
+  @RequirePermissions('catalog:category:list')
+  deleteCategory(@Param('id', ParseIntPipe) id: number) {
     return this.catalog.deleteCategory(id);
   }
 
-  @Get('products') listProducts(@Query() query: ProductQueryDto) {
+  @Get('products')
+  @RequirePermissions('catalog:product:list')
+  listProducts(@Query() query: ProductQueryDto) {
     return this.catalog.listProducts(query);
   }
-  @Get('products/:id') getProduct(@Param('id', ParseIntPipe) id: number) {
+  @Get('products/:id')
+  @RequirePermissions('catalog:product:list')
+  getProduct(@Param('id', ParseIntPipe) id: number) {
     return this.catalog.getProduct(id);
   }
-  @Post('products') createProduct(@Body() input: CreateProductDto) {
+  @Post('products')
+  @RequirePermissions('catalog:product:list')
+  createProduct(@Body() input: CreateProductDto) {
     return this.catalog.createProduct(input);
   }
-  @Patch('products/:id') updateProduct(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() input: UpdateProductDto,
-  ) {
+  @Patch('products/:id')
+  @RequirePermissions('catalog:product:list')
+  updateProduct(@Param('id', ParseIntPipe) id: number, @Body() input: UpdateProductDto) {
     return this.catalog.updateProduct(id, input);
   }
-  @Delete('products/:id') deleteProduct(@Param('id', ParseIntPipe) id: number) {
+  @Delete('products/:id')
+  @RequirePermissions('catalog:product:list')
+  deleteProduct(@Param('id', ParseIntPipe) id: number) {
     return this.catalog.deleteProduct(id);
   }
 
-  @Post('products/:productId/variants') createVariant(
+  @Post('products/:productId/variants')
+  @RequirePermissions('catalog:product:list')
+  createVariant(
     @Param('productId', ParseIntPipe) productId: number,
     @Body() input: CreateVariantDto,
   ) {
     return this.catalog.createVariant(productId, input);
   }
-  @Patch('variants/:id') updateVariant(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() input: UpdateVariantDto,
-  ) {
+  @Patch('variants/:id')
+  @RequirePermissions('catalog:product:list')
+  updateVariant(@Param('id', ParseIntPipe) id: number, @Body() input: UpdateVariantDto) {
     return this.catalog.updateVariant(id, input);
   }
-  @Delete('variants/:id') deleteVariant(@Param('id', ParseIntPipe) id: number) {
+  @Delete('variants/:id')
+  @RequirePermissions('catalog:product:list')
+  deleteVariant(@Param('id', ParseIntPipe) id: number) {
     return this.catalog.deleteVariant(id);
   }
-  @Post('variants/:id/inventory') adjustInventory(
+  @Post('variants/:id/inventory')
+  @RequirePermissions('catalog:product:list')
+  adjustInventory(
     @Param('id', ParseIntPipe) id: number,
     @Body() input: AdjustInventoryDto,
     @CurrentUser() user: RequestUser,
   ) {
     return this.catalog.adjustInventory(id, input, user);
   }
-  @Get('variants/:id/inventory-records') listInventoryRecords(
-    @Param('id', ParseIntPipe) id: number,
-  ) {
+  @Get('variants/:id/inventory-records')
+  @RequirePermissions('catalog:product:list')
+  listInventoryRecords(@Param('id', ParseIntPipe) id: number) {
     return this.catalog.listInventoryRecords(id);
   }
 }

@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module.js';
-import { OssAssetService } from '../storage/oss-asset.service.js';
+import { StorageModule } from '../storage/storage.module.js';
 import { AdminCatalogController } from './admin-catalog.controller.js';
 import { AppCatalogController } from './app-catalog.controller.js';
 import { CatalogService } from './catalog.service.js';
 
 @Module({
-  imports: [AuthModule],
+  imports: [AuthModule, StorageModule],
   controllers: [AdminCatalogController, AppCatalogController],
-  providers: [CatalogService, OssAssetService],
+  providers: [CatalogService],
 })
 export class CatalogModule {}

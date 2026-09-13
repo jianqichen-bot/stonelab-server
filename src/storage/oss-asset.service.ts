@@ -69,6 +69,35 @@ export class OssAssetService {
     };
   }
 
+  async uploadProfileAvatar(
+    userId: string,
+    originalName: string,
+    mimeType: string,
+    content: Buffer,
+  ): Promise<OssImageAsset> {
+    const extension = IMAGE_EXTENSIONS[mimeType];
+    if (!extension) {
+      throw new BadRequestException('仅支持 JPG、PNG、WebP 或 GIF 图片');
+    }
+    if (!content.length) throw new BadRequestException('图片文件不能为空');
+
+    const key = `avatars/${userId}/${randomUUID()}.${extension}`;
+    await this.getClient().put(key, content, {
+      headers: { 'Content-Type': mimeType },
+    });
+    return {
+      key,
+      name: originalName,
+      size: content.length,
+      updatedAt: new Date().toISOString(),
+      url: this.signedUrl(key),
+    };
+  }
+
+  async deleteObject(objectKey: string): Promise<void> {
+    await this.getClient().delete(objectKey.replace(/^\/+/, ''));
+  }
+
   private getClient(): OSS {
     this.client ??= new OSS({
       accessKeyId: this.config.getOrThrow<string>('OSS_ACCESS_KEY_ID'),

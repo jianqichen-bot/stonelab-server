@@ -51,6 +51,26 @@ describe('OssAssetService', () => {
       service.uploadBeadImage('note.txt', 'text/plain', Buffer.from('text')),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
+
+  it('stores profile avatars in a user-specific avatars directory', async () => {
+    const put = vi.fn().mockResolvedValue({});
+    const service = createService({
+      put,
+      signatureUrl: (key: string) => `signed:${key}`,
+    });
+
+    const result = await service.uploadProfileAvatar(
+      'user-1',
+      'avatar.webp',
+      'image/webp',
+      Buffer.from('image'),
+    );
+
+    expect(result.key).toMatch(/^avatars\/user-1\/[0-9a-f-]+\.webp$/);
+    expect(put).toHaveBeenCalledWith(result.key, expect.any(Buffer), {
+      headers: { 'Content-Type': 'image/webp' },
+    });
+  });
 });
 
 function createService(client: object) {

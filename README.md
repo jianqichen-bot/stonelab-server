@@ -4,7 +4,7 @@ StoneLab 的管理后台与小程序 API。当前第一阶段包含：
 
 - NestJS + Fastify 服务骨架、统一响应和异常处理
 - PostgreSQL + Prisma 数据模型
-- 管理员 JWT 登录，以及 Vben 所需的用户、权限码、菜单接口
+- 管理员 JWT 登录、用户/角色/部门管理、按钮权限和 Vben 动态路由
 - 分类、珠子商品、SKU 与库存流水接口
 - 小程序公开目录只读接口
 - Swagger 文档、Docker 本地依赖和基础测试
@@ -37,7 +37,19 @@ npm run dev
 - `POST /api/auth/logout`
 - `GET /api/auth/codes`
 - `GET /api/user/info`
+- `PATCH /api/user/profile`
+- `PATCH /api/user/password`
 - `GET /api/menu/all`
+
+系统管理接口均需 Bearer Token，并按当前用户的角色权限校验：
+
+- `/api/admin/system/departments`
+- `/api/admin/system/menus`
+- `/api/admin/system/roles`
+- `/api/admin/system/users`
+
+上述资源提供列表、新建、修改和删除接口；具体请求模型可在 Swagger 中查看。Home、About
+和个人中心是前端固定路由，其余业务页面由 `GET /api/menu/all` 按当前用户角色动态生成。
 
 目录管理接口位于 `/api/admin/catalog/*`，均需 Bearer Token。
 

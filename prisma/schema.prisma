@@ -29,18 +29,79 @@ enum BeadShape {
 }
 
 model AdminUser {
-  id           String       @id @default(cuid())
-  username     String       @unique @db.VarChar(64)
-  passwordHash String       @map("password_hash") @db.VarChar(255)
-  realName     String       @map("real_name") @db.VarChar(100)
-  roles        String[]     @default(["admin"])
-  permissions  String[]     @default([])
-  status       RecordStatus @default(ENABLED)
-  lastLoginAt  DateTime?    @map("last_login_at")
-  createdAt    DateTime     @default(now()) @map("created_at")
-  updatedAt    DateTime     @updatedAt @map("updated_at")
+  id                String           @id @default(cuid())
+  username          String           @unique @db.VarChar(64)
+  passwordHash      String           @map("password_hash") @db.VarChar(255)
+  realName          String           @map("real_name") @db.VarChar(100)
+  phone             String?          @db.VarChar(20)
+  email             String?          @db.VarChar(100)
+  avatarKey         String?          @map("avatar_key") @db.VarChar(255)
+  departmentId      Int?             @map("department_id")
+  legacyRoles       String[]         @default([]) @map("roles")
+  legacyPermissions String[]         @default([]) @map("permissions")
+  status            RecordStatus     @default(ENABLED)
+  lastLoginAt       DateTime?        @map("last_login_at")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+  department        AdminDepartment? @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  roleRecords       AdminRole[]
 
+  @@index([departmentId])
   @@map("admin_users")
+}
+
+model AdminDepartment {
+  id        Int               @id @default(autoincrement())
+  parentId  Int?              @map("parent_id")
+  name      String            @db.VarChar(50)
+  sort      Int               @default(0)
+  status    RecordStatus      @default(ENABLED)
+  remark    String            @default("") @db.VarChar(255)
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
+  parent    AdminDepartment?  @relation("AdminDepartmentTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children  AdminDepartment[] @relation("AdminDepartmentTree")
+  users     AdminUser[]
+
+  @@index([parentId, sort])
+  @@map("admin_departments")
+}
+
+model AdminMenu {
+  id         Int          @id @default(autoincrement())
+  parentId   Int?         @map("parent_id")
+  name       String       @db.VarChar(50)
+  i18nKey    String?      @unique @map("i18n_key") @db.VarChar(100)
+  type       String       @db.VarChar(16)
+  path       String       @default("") @db.VarChar(255)
+  component  String       @default("") @db.VarChar(255)
+  permission String       @default("") @db.VarChar(100)
+  icon       String       @default("") @db.VarChar(100)
+  sort       Int          @default(0)
+  status     RecordStatus @default(ENABLED)
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+  parent     AdminMenu?   @relation("AdminMenuTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children   AdminMenu[]  @relation("AdminMenuTree")
+  roles      AdminRole[]
+
+  @@index([parentId, sort])
+  @@index([permission])
+  @@map("admin_menus")
+}
+
+model AdminRole {
+  id        Int          @id @default(autoincrement())
+  code      String       @unique @db.VarChar(50)
+  name      String       @unique @db.VarChar(50)
+  status    RecordStatus @default(ENABLED)
+  remark    String       @default("") @db.VarChar(255)
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+  menus     AdminMenu[]
+  users     AdminUser[]
+
+  @@map("admin_roles")
 }
 
 model Category {

@@ -67,8 +67,8 @@ export class AuthController {
   @Get('menu/all')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
-  getMenus() {
-    return this.auth.getMenus();
+  getMenus(@CurrentUser() user: RequestUser) {
+    return this.auth.getMenus(user.sub);
   }
 
   private refreshCookieOptions() {
