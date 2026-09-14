@@ -2,7 +2,6 @@ import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { RecordStatus } from '../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { OssAssetService } from '../storage/oss-asset.service.js';
-import type { LoginDto } from './dto/login.dto.js';
 import { verifyPassword } from './password.js';
 import { TokenService } from './token.service.js';
 
@@ -14,7 +13,7 @@ export class AuthService {
     @Inject(OssAssetService) private readonly assets: OssAssetService,
   ) {}
 
-  async login(input: LoginDto) {
+  async login(input: { password: string; username: string }) {
     const user = await this.prisma.adminUser.findUnique({
       where: { username: input.username },
       include: { roleRecords: { where: { status: RecordStatus.ENABLED } } },
@@ -103,6 +102,51 @@ export class AuthService {
   }
 
   async getMenus(userId: string) {
+    const visible = await this.getVisibleMenus(userId);
+    const childrenByParent = new Map<number | null, typeof visible>();
+    for (const menu of visible) {
+      const siblings = childrenByParent.get(menu.parentId) ?? [];
+      siblings.push(menu);
+      childrenByParent.set(menu.parentId, siblings);
+    }
+    const toRoute = (menu: (typeof visible)[number], parentPath = ''): Record<string, unknown> => {
+      const children = (childrenByParent.get(menu.id) ?? []).map((child) =>
+        toRoute(child, menu.path),
+      );
+      const childPath =
+        parentPath && menu.path.startsWith(`${parentPath}/`)
+          ? menu.path.slice(parentPath.length + 1)
+          : menu.path;
+      return {
+        path: childPath,
+        name: this.routeName(menu.path),
+        ...(menu.type === 'MENU' ? { component: menu.component } : {}),
+        meta: {
+          title: `menu.${menu.id}`,
+          icon: menu.icon || undefined,
+          order: menu.sort,
+        },
+        ...(children.length ? { children } : {}),
+      };
+    };
+    return (childrenByParent.get(null) ?? []).map((menu) => toRoute(menu));
+  }
+
+  async getMenuTranslations(userId: string) {
+    const visible = await this.getVisibleMenus(userId);
+    return {
+      'zh-CN': {
+        menu: Object.fromEntries(visible.map((menu) => [String(menu.id), menu.name])),
+      },
+      'en-US': {
+        menu: Object.fromEntries(
+          visible.map((menu) => [String(menu.id), menu.nameEn || menu.name]),
+        ),
+      },
+    };
+  }
+
+  private async getVisibleMenus(userId: string) {
     const [user, allMenus] = await Promise.all([
       this.prisma.adminUser.findUniqueOrThrow({
         where: { id: userId },
@@ -132,34 +176,7 @@ export class AuthService {
         parentId = byId.get(parentId)?.parentId;
       }
     }
-    const visible = allMenus.filter((menu) => allowed.has(menu.id) && menu.type !== 'BUTTON');
-    const childrenByParent = new Map<number | null, typeof visible>();
-    for (const menu of visible) {
-      const siblings = childrenByParent.get(menu.parentId) ?? [];
-      siblings.push(menu);
-      childrenByParent.set(menu.parentId, siblings);
-    }
-    const toRoute = (menu: (typeof visible)[number], parentPath = ''): Record<string, unknown> => {
-      const children = (childrenByParent.get(menu.id) ?? []).map((child) =>
-        toRoute(child, menu.path),
-      );
-      const childPath =
-        parentPath && menu.path.startsWith(`${parentPath}/`)
-          ? menu.path.slice(parentPath.length + 1)
-          : menu.path;
-      return {
-        path: childPath,
-        name: this.routeName(menu.path),
-        ...(menu.type === 'MENU' ? { component: menu.component } : {}),
-        meta: {
-          title: menu.i18nKey || menu.name,
-          icon: menu.icon || undefined,
-          order: menu.sort,
-        },
-        ...(children.length ? { children } : {}),
-      };
-    };
-    return (childrenByParent.get(null) ?? []).map((menu) => toRoute(menu));
+    return allMenus.filter((menu) => allowed.has(menu.id) && menu.type !== 'BUTTON');
   }
 
   private routeName(path: string) {

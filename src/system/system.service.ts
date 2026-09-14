@@ -89,7 +89,7 @@ export class SystemService {
         id: row.id,
         parentId: row.parentId,
         name: row.name,
-        i18nKey: row.i18nKey,
+        nameEn: row.nameEn,
         type: row.type,
         path: row.path,
         component: row.component,
@@ -330,15 +330,7 @@ export class SystemService {
     return (byParent.get(null) ?? []).map(append);
   }
 
-  private validateMenu(input: {
-    component: string;
-    i18nKey?: null | string;
-    path: string;
-    type: string;
-  }) {
-    if (input.type !== 'BUTTON' && !input.i18nKey?.trim()) {
-      throw new BadRequestException('目录和菜单必须填写国际化标识');
-    }
+  private validateMenu(input: { component: string; path: string; type: string }) {
     if (input.type !== 'BUTTON' && !input.path.trim()) {
       throw new BadRequestException('目录和菜单必须填写路由地址');
     }

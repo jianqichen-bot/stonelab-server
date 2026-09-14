@@ -86,7 +86,7 @@ model AdminMenu {
   id         Int          @id @default(autoincrement())
   parentId   Int?         @map("parent_id")
   name       String       @db.VarChar(50)
-  i18nKey    String?      @unique @map("i18n_key") @db.VarChar(100)
+  nameEn     String       @default("") @map("name_en") @db.VarChar(100)
   type       String       @db.VarChar(16)
   path       String       @default("") @db.VarChar(255)
   component  String       @default("") @db.VarChar(255)

@@ -77,7 +77,13 @@ describe('CatalogService app catalog', () => {
     const create = vi
       .fn<
         (input: {
-          data: { categoryId: number; name: string; slug: string; variants?: unknown };
+          data: {
+            categoryId: number;
+            imageKey: string;
+            name: string;
+            slug: string;
+            variants?: unknown;
+          };
           include: { variants: boolean };
         }) => Promise<{
           categoryId: number;
@@ -96,7 +102,13 @@ describe('CatalogService app catalog', () => {
       });
     const service = createService({ beadProduct: { create } });
 
-    await expect(service.createProduct({ categoryId: 2, name: '新珠子' })).resolves.toEqual({
+    await expect(
+      service.createProduct({
+        categoryId: 2,
+        imageKey: 'beads/new-bead.png',
+        name: '新珠子',
+      }),
+    ).resolves.toEqual({
       categoryId: 2,
       id: 12,
       name: '新珠子',
@@ -104,6 +116,7 @@ describe('CatalogService app catalog', () => {
     });
     expect(create).toHaveBeenCalledOnce();
     expect(create.mock.calls[0]![0].data.categoryId).toBe(2);
+    expect(create.mock.calls[0]![0].data.imageKey).toBe('beads/new-bead.png');
     expect(create.mock.calls[0]![0].data.name).toBe('新珠子');
     expect(create.mock.calls[0]![0].data.slug).toMatch(/^product-/);
     expect(create.mock.calls[0]![0].include).toEqual({ variants: true });

@@ -58,10 +58,10 @@ export class CreateMenuDto {
   @MaxLength(50)
   name!: string;
 
-  @IsOptional()
   @IsString()
+  @IsNotEmpty()
   @MaxLength(100)
-  i18nKey?: string;
+  nameEn!: string;
 
   @IsEnum(AdminMenuType)
   type!: AdminMenuType;

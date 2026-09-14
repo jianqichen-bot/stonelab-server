@@ -47,7 +47,7 @@ export class CreateProductDto {
   @IsString() @MaxLength(120) @IsOptional() origin?: string;
   @IsString() @MaxLength(255) @IsOptional() shortMeaning?: string;
   @IsString() @IsOptional() description?: string;
-  @IsString() @MaxLength(500) @IsOptional() imageKey?: null | string;
+  @IsString() @IsNotEmpty() @MaxLength(500) imageKey!: string;
   @IsEnum(BeadShape) @IsOptional() shape?: BeadShape;
   @IsInt() @IsOptional() sort?: number;
   @IsEnum(RecordStatus) @IsOptional() status?: RecordStatus;
@@ -67,7 +67,7 @@ export class UpdateProductDto {
   @IsString() @MaxLength(120) @IsOptional() origin?: string;
   @IsString() @MaxLength(255) @IsOptional() shortMeaning?: string;
   @IsString() @IsOptional() description?: string;
-  @IsString() @MaxLength(500) @IsOptional() imageKey?: null | string;
+  @IsString() @IsNotEmpty() @MaxLength(500) @IsOptional() imageKey?: string;
   @IsEnum(BeadShape) @IsOptional() shape?: BeadShape;
   @IsInt() @IsOptional() sort?: number;
   @IsEnum(RecordStatus) @IsOptional() status?: RecordStatus;

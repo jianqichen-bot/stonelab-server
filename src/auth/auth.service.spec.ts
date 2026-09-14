@@ -50,6 +50,37 @@ describe('AuthService permissions and dynamic menus', () => {
       },
     ]);
     expect(JSON.stringify(routes)).not.toContain('system:user:create');
+    expect(routes[0]).toMatchObject({ meta: { title: 'menu.10' } });
+  });
+
+  it('returns menu translations for both supported languages', async () => {
+    const findUniqueOrThrow = vi.fn().mockResolvedValue({
+      roleRecords: [{ menus: [{ id: 10 }, { id: 12 }] }],
+    });
+    const findMany = vi
+      .fn()
+      .mockResolvedValue([
+        menu(10, null, '商品中心', 'DIRECTORY', '/catalog', 10, '', 'Catalog'),
+        menu(
+          12,
+          10,
+          '珠子商品',
+          'MENU',
+          '/catalog/products',
+          2,
+          '/catalog/products/index',
+          'Bead Products',
+        ),
+      ]);
+    const service = createService({
+      adminUser: { findUniqueOrThrow },
+      adminMenu: { findMany },
+    });
+
+    await expect(service.getMenuTranslations('user-1')).resolves.toEqual({
+      'zh-CN': { menu: { '10': '商品中心', '12': '珠子商品' } },
+      'en-US': { menu: { '10': 'Catalog', '12': 'Bead Products' } },
+    });
   });
 
   it('deduplicates permissions from roles and legacy data', async () => {
@@ -85,11 +116,13 @@ function menu(
   path: string,
   sort: number,
   component = '',
+  nameEn = name,
 ) {
   return {
     id,
     parentId,
     name,
+    nameEn,
     type,
     path,
     component,

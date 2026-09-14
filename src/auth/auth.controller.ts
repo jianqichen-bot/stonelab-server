@@ -19,6 +19,7 @@ import { AuthService } from './auth.service.js';
 import { CurrentUser } from './current-user.decorator.js';
 import { LoginDto } from './dto/login.dto.js';
 import { RefreshTokenDto } from './dto/refresh-token.dto.js';
+import { LoginCryptoService } from './login-crypto.service.js';
 
 @ApiTags('admin-auth')
 @Controller({ version: VERSION_NEUTRAL })
@@ -26,12 +27,25 @@ export class AuthController {
   constructor(
     @Inject(AuthService) private readonly auth: AuthService,
     @Inject(ConfigService) private readonly config: ConfigService,
+    @Inject(LoginCryptoService) private readonly loginCrypto: LoginCryptoService,
   ) {}
+
+  @Get('auth/encryption-key')
+  getLoginEncryptionKey(@Res({ passthrough: true }) reply: FastifyReply) {
+    reply.header('Cache-Control', 'no-store');
+    return this.loginCrypto.getPublicKey();
+  }
 
   @Post('auth/login')
   @HttpCode(200)
   async login(@Body() input: LoginDto, @Res({ passthrough: true }) reply: FastifyReply) {
-    const result = await this.auth.login(input);
+    const password = this.loginCrypto.decryptPassword(
+      input.keyId,
+      input.encryptedKey,
+      input.iv,
+      input.encryptedPassword,
+    );
+    const result = await this.auth.login({ username: input.username, password });
     reply.setCookie('jwt', result.refreshToken, this.refreshCookieOptions());
     return result;
   }
@@ -69,6 +83,13 @@ export class AuthController {
   @ApiBearerAuth()
   getMenus(@CurrentUser() user: RequestUser) {
     return this.auth.getMenus(user.sub);
+  }
+
+  @Get('menu/translations')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  getMenuTranslations(@CurrentUser() user: RequestUser) {
+    return this.auth.getMenuTranslations(user.sub);
   }
 
   private refreshCookieOptions() {

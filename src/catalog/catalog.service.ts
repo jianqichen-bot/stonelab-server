@@ -181,6 +181,14 @@ export class CatalogService {
   }
 
   async updateProduct(id: number, input: UpdateProductDto) {
+    const current = await this.prisma.beadProduct.findUnique({
+      where: { id },
+      select: { imageKey: true },
+    });
+    if (!current) throw new NotFoundException('商品不存在');
+    if (!(input.imageKey ?? current.imageKey)?.trim()) {
+      throw new BadRequestException('请选择商品图片');
+    }
     const product = await this.prisma.beadProduct.update({ where: { id }, data: input });
     return this.omitSlug(product);
   }
