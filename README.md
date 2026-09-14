@@ -22,7 +22,7 @@ npm run db:seed
 npm run dev
 ```
 
-本地 PostgreSQL 默认监听 `localhost:5433`，避免与机器上已有的 `5432` 实例冲突；可通过 `POSTGRES_PORT` 覆盖。
+本地 PostgreSQL 默认监听 `localhost:5432`；可通过 `POSTGRES_PORT` 覆盖。
 
 默认服务地址为 `http://localhost:3100`，Swagger 地址为 `http://localhost:3100/api/docs`。
 
