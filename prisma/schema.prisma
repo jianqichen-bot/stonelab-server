@@ -28,6 +28,21 @@ enum BeadShape {
   CHIP
 }
 
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  PROCESSING
+  SHIPPED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+}
+
 model AdminUser {
   id                String           @id @default(cuid())
   username          String           @unique @db.VarChar(64)
@@ -139,6 +154,7 @@ model BeadProduct {
   updatedAt    DateTime      @updatedAt @map("updated_at")
   category     Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   variants     BeadVariant[]
+  orderItems   OrderItem[]
 
   @@index([categoryId, status, sort])
   @@map("bead_products")
@@ -158,6 +174,7 @@ model BeadVariant {
   updatedAt         DateTime          @updatedAt @map("updated_at")
   product           BeadProduct       @relation(fields: [productId], references: [id], onDelete: Cascade)
   inventoryRecords  InventoryRecord[]
+  orderItems        OrderItem[]
 
   @@index([productId, status])
   @@map("bead_variants")
@@ -177,4 +194,61 @@ model InventoryRecord {
 
   @@index([variantId, createdAt])
   @@map("inventory_records")
+}
+
+model Order {
+  id                String        @id @default(cuid())
+  orderNo           String        @unique @map("order_no") @db.VarChar(32)
+  customerId        String?       @map("customer_id") @db.VarChar(64)
+  recipientName     String        @map("recipient_name") @db.VarChar(50)
+  recipientPhone    String        @map("recipient_phone") @db.VarChar(20)
+  recipientProvince String        @map("recipient_province") @db.VarChar(50)
+  recipientCity     String        @map("recipient_city") @db.VarChar(50)
+  recipientDistrict String        @map("recipient_district") @db.VarChar(50)
+  recipientAddress  String        @map("recipient_address") @db.VarChar(255)
+  subtotalCents     Int           @map("subtotal_cents")
+  shippingFeeCents  Int           @default(0) @map("shipping_fee_cents")
+  totalAmountCents  Int           @map("total_amount_cents")
+  status            OrderStatus   @default(PENDING_PAYMENT)
+  paymentStatus     PaymentStatus @default(UNPAID) @map("payment_status")
+  buyerRemark       String        @default("") @map("buyer_remark") @db.VarChar(500)
+  adminRemark       String        @default("") @map("admin_remark") @db.VarChar(500)
+  trackingCompany   String        @default("") @map("tracking_company") @db.VarChar(100)
+  trackingNo        String        @default("") @map("tracking_no") @db.VarChar(100)
+  paidAt            DateTime?     @map("paid_at")
+  shippedAt         DateTime?     @map("shipped_at")
+  completedAt       DateTime?     @map("completed_at")
+  cancelledAt       DateTime?     @map("cancelled_at")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+  items             OrderItem[]
+
+  @@index([status, createdAt])
+  @@index([customerId, createdAt])
+  @@index([recipientPhone])
+  @@map("orders")
+}
+
+model OrderItem {
+  id              BigInt       @id @default(autoincrement())
+  orderId         String       @map("order_id")
+  productId       Int?         @map("product_id")
+  variantId       Int?         @map("variant_id")
+  productName     String       @map("product_name") @db.VarChar(120)
+  variantName     String       @map("variant_name") @db.VarChar(100)
+  imageKey        String?      @map("image_key") @db.VarChar(500)
+  diameterMm      Decimal?     @map("diameter_mm") @db.Decimal(6, 2)
+  unitPriceCents  Int          @map("unit_price_cents")
+  quantity        Int
+  totalPriceCents Int          @map("total_price_cents")
+  position        Int          @default(0)
+  createdAt       DateTime     @default(now()) @map("created_at")
+  order           Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product         BeadProduct? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variant         BeadVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([orderId, position])
+  @@index([productId])
+  @@index([variantId])
+  @@map("order_items")
 }
