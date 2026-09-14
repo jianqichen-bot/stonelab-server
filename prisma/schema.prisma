@@ -43,6 +43,11 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum CartItemSource {
+  DIY
+  INSPIRATION
+}
+
 model AdminUser {
   id                String           @id @default(cuid())
   username          String           @unique @db.VarChar(64)
@@ -175,9 +180,55 @@ model BeadVariant {
   product           BeadProduct       @relation(fields: [productId], references: [id], onDelete: Cascade)
   inventoryRecords  InventoryRecord[]
   orderItems        OrderItem[]
+  cartMaterials     CartItemMaterial[]
 
   @@index([productId, status])
   @@map("bead_variants")
+}
+
+model AppCart {
+  id        String     @id @default(cuid())
+  clientId  String     @unique @map("client_id") @db.VarChar(64)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  items     CartItem[]
+
+  @@map("app_carts")
+}
+
+model CartItem {
+  id                   String             @id @default(cuid())
+  cartId               String             @map("cart_id")
+  source               CartItemSource     @default(DIY)
+  title                String             @db.VarChar(120)
+  previewImageKey      String?            @map("preview_image_key") @db.VarChar(500)
+  wristCircumferenceMm Decimal?           @map("wrist_circumference_mm") @db.Decimal(7, 2)
+  recommendedWristMin  Decimal?           @map("recommended_wrist_min") @db.Decimal(6, 2)
+  recommendedWristMax  Decimal?           @map("recommended_wrist_max") @db.Decimal(6, 2)
+  packageCode          String             @default("STANDARD") @map("package_code") @db.VarChar(32)
+  certificateCode      String             @default("NONE") @map("certificate_code") @db.VarChar(32)
+  selected             Boolean            @default(true)
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+  cart                 AppCart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  materials            CartItemMaterial[]
+
+  @@index([cartId, createdAt])
+  @@map("cart_items")
+}
+
+model CartItemMaterial {
+  id         BigInt      @id @default(autoincrement())
+  cartItemId String      @map("cart_item_id")
+  variantId  Int         @map("variant_id")
+  quantity   Int
+  position   Int         @default(0)
+  cartItem   CartItem    @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
+  variant    BeadVariant @relation(fields: [variantId], references: [id], onDelete: Restrict)
+
+  @@index([cartItemId, position])
+  @@index([variantId])
+  @@map("cart_item_materials")
 }
 
 model InventoryRecord {
