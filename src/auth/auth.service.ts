@@ -48,10 +48,18 @@ export class AuthService {
         include: { roleRecords: { where: { status: RecordStatus.ENABLED } } },
       });
       if (!user || user.status !== RecordStatus.ENABLED) throw new Error('user disabled');
-      return (await this.issueTokens(user)).accessToken;
+      return this.tokens.issueAccess({
+        id: user.id,
+        username: user.username,
+        roles: user.roleRecords.map((role) => role.code),
+      });
     } catch {
       throw new UnauthorizedException('刷新令牌无效或已过期');
     }
+  }
+
+  async logout(refreshToken: string) {
+    await this.tokens.revokeRefresh(refreshToken);
   }
 
   async getUserInfo(userId: string) {

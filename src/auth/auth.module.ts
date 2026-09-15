@@ -5,12 +5,20 @@ import { AuthGuard } from './auth.guard.js';
 import { AuthService } from './auth.service.js';
 import { LoginCryptoService } from './login-crypto.service.js';
 import { PermissionGuard } from './permission.guard.js';
+import { RefreshSessionService } from './refresh-session.service.js';
 import { TokenService } from './token.service.js';
 
 @Module({
   imports: [StorageModule],
   controllers: [AuthController],
-  providers: [AuthService, AuthGuard, LoginCryptoService, PermissionGuard, TokenService],
+  providers: [
+    AuthService,
+    AuthGuard,
+    LoginCryptoService,
+    PermissionGuard,
+    RefreshSessionService,
+    TokenService,
+  ],
   exports: [AuthGuard, PermissionGuard, TokenService],
 })
 export class AuthModule {}

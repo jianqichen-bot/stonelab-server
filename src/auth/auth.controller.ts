@@ -59,7 +59,8 @@ export class AuthController {
 
   @Post('auth/logout')
   @HttpCode(200)
-  logout(@Res({ passthrough: true }) reply: FastifyReply) {
+  async logout(@Req() request: FastifyRequest, @Res({ passthrough: true }) reply: FastifyReply) {
+    await this.auth.logout(request.cookies.jwt ?? '');
     reply.clearCookie('jwt', { path: '/api/auth' });
     return true;
   }

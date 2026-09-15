@@ -6,6 +6,7 @@ export interface AccessTokenPayload {
 }
 
 export interface RefreshTokenPayload {
+  jti: string;
   sub: string;
   type: 'refresh';
 }

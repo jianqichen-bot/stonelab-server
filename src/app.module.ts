@@ -7,11 +7,13 @@ import { HealthController } from './health/health.controller.js';
 import { OrderModule } from './order/order.module.js';
 import { SystemModule } from './system/system.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { RedisModule } from './redis/redis.module.js';
 
 @Module({
   imports: [
     ConfigModule,
     PrismaModule,
+    RedisModule,
     AuthModule,
     CatalogModule,
     CartModule,

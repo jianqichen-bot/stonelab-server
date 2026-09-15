@@ -83,6 +83,29 @@ describe('AuthService permissions and dynamic menus', () => {
     });
   });
 
+  it('refreshes only the access token without creating another refresh session', async () => {
+    const verifyRefresh = vi.fn().mockResolvedValue({ sub: 'user-1' });
+    const issueAccess = vi.fn().mockResolvedValue('new-access-token');
+    const issue = vi.fn();
+    const service = createService(
+      {
+        adminUser: {
+          findUnique: vi.fn().mockResolvedValue({
+            id: 'user-1',
+            roleRecords: [{ code: 'super_admin' }],
+            status: 'ENABLED',
+            username: 'admin',
+          }),
+        },
+      },
+      { issue, issueAccess, verifyRefresh },
+    );
+
+    await expect(service.refresh('refresh-token')).resolves.toBe('new-access-token');
+    expect(issueAccess).toHaveBeenCalledOnce();
+    expect(issue).not.toHaveBeenCalled();
+  });
+
   it('deduplicates permissions from roles and legacy data', async () => {
     const service = createService({
       adminUser: {
@@ -135,10 +158,10 @@ function menu(
   };
 }
 
-function createService(prismaShape: object) {
+function createService(prismaShape: object, tokenShape: object = {}) {
   return new AuthService(
     prismaShape as PrismaService,
-    {} as TokenService,
+    tokenShape as TokenService,
     { signedUrl: (key: string) => `signed:${key}` } as OssAssetService,
   );
 }

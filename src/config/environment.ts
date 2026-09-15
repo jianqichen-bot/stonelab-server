@@ -28,6 +28,11 @@ class EnvironmentVariables {
 
   @IsString()
   @IsNotEmpty()
+  @IsOptional()
+  REDIS_URL = 'redis://127.0.0.1:6379';
+
+  @IsString()
+  @IsNotEmpty()
   @MinLength(32)
   JWT_ACCESS_SECRET!: string;
 
@@ -35,6 +40,14 @@ class EnvironmentVariables {
   @IsNotEmpty()
   @MinLength(32)
   JWT_REFRESH_SECRET!: string;
+
+  @IsString()
+  @IsOptional()
+  JWT_ACCESS_EXPIRES_IN = '15m';
+
+  @IsString()
+  @IsOptional()
+  JWT_REFRESH_EXPIRES_IN = '30d';
 }
 
 export function validateEnvironment(config: Record<string, unknown>) {
